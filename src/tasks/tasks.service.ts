@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan } from 'typeorm';
 import { Task } from './task.entity';
@@ -11,6 +11,12 @@ export class TasksService {
   ) {}
 
   async addTask(title: string, dueDate: Date): Promise<Task> {
+    // Check if a task with the same title already exists
+    const existingTask = await this.taskRepo.findOne({ where: { title } });
+    if (existingTask) {
+      throw new BadRequestException(`Task with title "${title}" already exists.`);
+    }
+
     const task = this.taskRepo.create({ title, dueDate });
     return this.taskRepo.save(task);
   }
